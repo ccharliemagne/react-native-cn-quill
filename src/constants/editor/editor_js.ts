@@ -3,7 +3,13 @@ export const editor_js = `
 (function (doc) {
 
   var getAttributes = function (node) {
-    const attrArray = node?.attributes ? [...node.attributes] : [];
+    
+    let attrArray = [];
+
+    if(node.attributes){
+      attrArray = [...node.attributes]
+    }
+
     return attrArray.reduce((_attr, node) => ({ ..._attr, [node.nodeName]: node.nodeValue}), {});
   }
 
@@ -147,13 +153,17 @@ export const editor_js = `
 
   const getLeaf = function (key, index) {
     const [leaf, offset] = quill.getLeaf(index);
-    const getLeafData = leaf ? {
-      offset,
-      text: leaf.text,
-      length: leaf.text.length,
-      index: quill.getIndex(leaf),
-      attributes: getAttributes(leaf?.parent?.domNode)
-    } : null
+    let getLeafData = null
+    if(leaf){
+      getLeafData = {
+        offset,
+        text: leaf.text,
+        length: leaf.text.length,
+        index: quill.getIndex(leaf),
+        attributes: getAttributes(leaf.parent.domNode)
+      }
+    }
+
     const getLeafJson = JSON.stringify({
       type: 'get-leaf',
       key: key,
@@ -181,7 +191,6 @@ export const editor_js = `
     });
     sendMessage(formatTextJson);
   }
-
 
   var getRequest = function (event) {
     var msg = JSON.parse(event.data);
@@ -220,7 +229,7 @@ export const editor_js = `
         getSelection(msg.key, msg.focus);
         break;
       case 'getFormat': 
-        getFormat(msg.key, msg?.index, msg?.length);
+        getFormat(msg.key, msg.index, msg.length);
         break;
       case 'getLeaf':
         getLeaf(msg.key, msg.index);
